@@ -9,18 +9,34 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable'
 import type { DateTime } from 'luxon'
-import type { RegionTimezone } from '../types/timezone'
+import { TIMEZONE_OPTIONS } from '../constants/customTimezones'
+import type { CustomSlotId } from '../constants/customTimezones'
+import type { CustomZonesMap } from '../hooks/useCustomTimezones'
+import { REFERENCE_ZONE } from '../constants/timezones'
 import { getNowInZone } from '../utils/timezone'
+import { resolveCustomCards, resolveRegionalCards } from '../utils/dashboardCards'
+import { DASHBOARD_GRID_CLASS } from './DashboardCardsLayout'
 import { SortableTimezoneCard } from './SortableTimezoneCard'
+import { TimezoneCard } from './TimezoneCard'
 
 interface TimezoneGridProps {
   now: DateTime
   order: string[]
-  orderedRegions: RegionTimezone[]
+  customZones: CustomZonesMap
+  onCustomZoneChange: (slotId: CustomSlotId, zone: string) => void
   onOrderChange: (order: string[]) => void
 }
 
-export function TimezoneGrid({ now, order, orderedRegions, onOrderChange }: TimezoneGridProps) {
+export function TimezoneGrid({
+  now,
+  order,
+  customZones,
+  onCustomZoneChange,
+  onOrderChange,
+}: TimezoneGridProps) {
+  const regionalCards = resolveRegionalCards(order)
+  const customCards = resolveCustomCards(customZones)
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -48,7 +64,7 @@ export function TimezoneGrid({ now, order, orderedRegions, onOrderChange }: Time
           <h2 className="text-lg font-semibold text-zinc-100">Live Regional Clocks</h2>
           <p className="text-sm text-zinc-500">
             Updates every second with automatic daylight saving adjustments. Drag cards to
-            reorder.
+            reorder. Custom cards on the third row let you pick any timezone.
           </p>
         </div>
         <div className="flex flex-wrap gap-3 text-xs text-zinc-500">
@@ -68,18 +84,28 @@ export function TimezoneGrid({ now, order, orderedRegions, onOrderChange }: Time
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {orderedRegions.map((region) => (
+        <div className={DASHBOARD_GRID_CLASS}>
+          <SortableContext items={order} strategy={rectSortingStrategy}>
+            {regionalCards.map((card) => (
               <SortableTimezoneCard
-                key={region.id}
-                id={region.id}
-                region={region}
-                display={getNowInZone(region.zone, now)}
+                key={card.id}
+                id={card.id}
+                region={card.region}
+                display={getNowInZone(card.region.zone, now)}
+                isReference={card.region.zone === REFERENCE_ZONE}
               />
             ))}
-          </div>
-        </SortableContext>
+          </SortableContext>
+          {customCards.map((card) => (
+            <TimezoneCard
+              key={card.id}
+              region={card.region}
+              display={getNowInZone(card.region.zone, now)}
+              zoneOptions={TIMEZONE_OPTIONS}
+              onZoneChange={(zone) => onCustomZoneChange(card.slotId!, zone)}
+            />
+          ))}
+        </div>
       </DndContext>
     </section>
   )

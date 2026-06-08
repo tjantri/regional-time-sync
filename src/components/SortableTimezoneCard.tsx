@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import type { TimezoneOption } from '../constants/customTimezones'
 import type { RegionTimezone, TimezoneDisplay } from '../types/timezone'
 import { TimezoneCard } from './TimezoneCard'
 
@@ -8,6 +9,8 @@ interface SortableTimezoneCardProps {
   region: RegionTimezone
   display: TimezoneDisplay
   isReference?: boolean
+  zoneOptions?: TimezoneOption[]
+  onZoneChange?: (zone: string) => void
 }
 
 export function SortableTimezoneCard({
@@ -15,6 +18,8 @@ export function SortableTimezoneCard({
   region,
   display,
   isReference = false,
+  zoneOptions,
+  onZoneChange,
 }: SortableTimezoneCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -34,6 +39,8 @@ export function SortableTimezoneCard({
         isReference={isReference}
         isDragging={isDragging}
         dragHandleProps={{ ...attributes, ...listeners }}
+        zoneOptions={zoneOptions}
+        onZoneChange={onZoneChange}
       />
     </div>
   )

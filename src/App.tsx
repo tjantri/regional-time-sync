@@ -2,11 +2,13 @@ import { Header } from './components/Header'
 import { MeetingPlanner } from './components/MeetingPlanner'
 import { TimezoneGrid } from './components/TimezoneGrid'
 import { useCurrentTime } from './hooks/useCurrentTime'
+import { useCustomTimezones } from './hooks/useCustomTimezones'
 import { useRegionOrder } from './hooks/useRegionOrder'
 
 function App() {
   const now = useCurrentTime()
-  const { order, setOrder, orderedRegions } = useRegionOrder()
+  const { order, setOrder } = useRegionOrder()
+  const { customZones, setCustomZone } = useCustomTimezones()
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -19,10 +21,16 @@ function App() {
         <TimezoneGrid
           now={now}
           order={order}
-          orderedRegions={orderedRegions}
+          customZones={customZones}
+          onCustomZoneChange={setCustomZone}
           onOrderChange={setOrder}
         />
-        <MeetingPlanner now={now} orderedRegions={orderedRegions} />
+        <MeetingPlanner
+          now={now}
+          order={order}
+          customZones={customZones}
+          onCustomZoneChange={setCustomZone}
+        />
       </main>
 
       <footer className="relative border-t border-zinc-800/80 px-6 py-6 text-center text-xs text-zinc-600">

@@ -1,22 +1,49 @@
 import { useMemo, useState } from 'react'
 import type { DateTime } from 'luxon'
 import { REFERENCE_ZONE } from '../constants/timezones'
-import type { RegionTimezone } from '../types/timezone'
+import { TIMEZONE_OPTIONS } from '../constants/customTimezones'
+import type { CustomZonesMap } from '../hooks/useCustomTimezones'
+import type { CustomSlotId } from '../constants/customTimezones'
 import {
   convertFromReference,
   getDefaultMeetingDateTime,
   parseReferenceDateTime,
   snapTimeToQuarterHour,
 } from '../utils/timezone'
+import { resolveCustomCards, resolveRegionalCards } from '../utils/dashboardCards'
+import { DASHBOARD_GRID_CLASS } from './DashboardCardsLayout'
 import { QuarterHourTimePicker } from './QuarterHourTimePicker'
 import { TimezoneCard } from './TimezoneCard'
 
 interface MeetingPlannerProps {
   now: DateTime
-  orderedRegions: RegionTimezone[]
+  order: string[]
+  customZones: CustomZonesMap
+  onCustomZoneChange: (slotId: CustomSlotId, zone: string) => void
 }
 
-export function MeetingPlanner({ now, orderedRegions }: MeetingPlannerProps) {
+function buildDisplay(isValid: boolean, referenceDt: DateTime, zone: string) {
+  if (!isValid) {
+    return {
+      time: '--:--:--',
+      date: '---',
+      abbreviation: '---',
+      offset: '+00:00',
+      status: 'sleeping' as const,
+    }
+  }
+
+  return convertFromReference(referenceDt, zone)
+}
+
+export function MeetingPlanner({
+  now,
+  order,
+  customZones,
+  onCustomZoneChange,
+}: MeetingPlannerProps) {
+  const regionalCards = resolveRegionalCards(order)
+  const customCards = resolveCustomCards(customZones)
   const defaults = useMemo(() => getDefaultMeetingDateTime(now), [now])
   const [date, setDate] = useState(defaults.date)
   const [time, setTime] = useState(defaults.time)
@@ -36,7 +63,7 @@ export function MeetingPlanner({ now, orderedRegions }: MeetingPlannerProps) {
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-zinc-100">Meeting Planner</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          Select a time in Thailand — all regions convert instantly (15-minute intervals)
+          Select a preferred time base in TH-time zone - all regions convert instantly
         </p>
       </div>
 
@@ -78,27 +105,24 @@ export function MeetingPlanner({ now, orderedRegions }: MeetingPlannerProps) {
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-        {orderedRegions.map((region) => {
-          const display = isValid
-            ? convertFromReference(referenceDt, region.zone)
-            : {
-                time: '--:--:--',
-                date: '---',
-                abbreviation: '---',
-                offset: '+00:00',
-                status: 'sleeping' as const,
-              }
-
-          return (
-            <TimezoneCard
-              key={region.id}
-              region={region}
-              display={display}
-              isReference={region.zone === REFERENCE_ZONE}
-            />
-          )
-        })}
+      <div className={DASHBOARD_GRID_CLASS}>
+        {regionalCards.map((card) => (
+          <TimezoneCard
+            key={card.id}
+            region={card.region}
+            display={buildDisplay(isValid, referenceDt, card.region.zone)}
+            isReference={card.region.zone === REFERENCE_ZONE}
+          />
+        ))}
+        {customCards.map((card) => (
+          <TimezoneCard
+            key={card.id}
+            region={card.region}
+            display={buildDisplay(isValid, referenceDt, card.region.zone)}
+            zoneOptions={TIMEZONE_OPTIONS}
+            onZoneChange={(zone) => onCustomZoneChange(card.slotId!, zone)}
+          />
+        ))}
       </div>
     </section>
   )

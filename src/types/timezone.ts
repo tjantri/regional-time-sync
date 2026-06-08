@@ -5,6 +5,7 @@ export interface RegionTimezone {
   label: string
   zone: string
   flag: string
+  isCustom?: boolean
 }
 
 export interface TimezoneDisplay {

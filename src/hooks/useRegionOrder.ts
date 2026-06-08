@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
+import { CUSTOM_SLOT_IDS } from '../constants/customTimezones'
 import { REGIONS } from '../constants/timezones'
-import type { RegionTimezone } from '../types/timezone'
 
 const STORAGE_KEY = 'regional-time-sync-card-order'
-const DEFAULT_ORDER = REGIONS.map((region) => region.id)
+
+export const FIXED_REGION_IDS = REGIONS.map((region) => region.id)
+const DEFAULT_ORDER = [...FIXED_REGION_IDS]
 
 function loadSavedOrder(): string[] {
   try {
@@ -13,9 +15,9 @@ function loadSavedOrder(): string[] {
     const parsed = JSON.parse(saved) as unknown
     if (!Array.isArray(parsed)) return DEFAULT_ORDER
 
-    const validIds = new Set(REGIONS.map((region) => region.id))
+    const validIds = new Set(FIXED_REGION_IDS)
     const restored = parsed.filter((id): id is string => typeof id === 'string' && validIds.has(id))
-    const missing = REGIONS.filter((region) => !restored.includes(region.id)).map((region) => region.id)
+    const missing = FIXED_REGION_IDS.filter((id) => !restored.includes(id))
 
     return [...restored, ...missing]
   } catch {
@@ -23,22 +25,16 @@ function loadSavedOrder(): string[] {
   }
 }
 
-function toOrderedRegions(order: string[]): RegionTimezone[] {
-  const regionMap = new Map(REGIONS.map((region) => [region.id, region]))
-  return order.flatMap((id) => {
-    const region = regionMap.get(id)
-    return region ? [region] : []
-  })
-}
-
 export function useRegionOrder() {
   const [order, setOrderState] = useState<string[]>(loadSavedOrder)
-  const orderedRegions = toOrderedRegions(order)
 
   const setOrder = useCallback((nextOrder: string[]) => {
-    setOrderState(nextOrder)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextOrder))
+    const regionalOnly = nextOrder.filter((id) => FIXED_REGION_IDS.includes(id))
+    setOrderState(regionalOnly)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(regionalOnly))
   }, [])
 
-  return { order, setOrder, orderedRegions }
+  return { order, setOrder }
 }
+
+export { CUSTOM_SLOT_IDS }

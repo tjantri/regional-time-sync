@@ -1,4 +1,6 @@
+import type { TimezoneOption } from '../constants/customTimezones'
 import type { RegionTimezone, TimezoneDisplay } from '../types/timezone'
+import { TimezoneSelect } from './TimezoneSelect'
 import { WorkingHoursIndicator } from './WorkingHoursIndicator'
 
 interface DragHandleProps {
@@ -18,6 +20,8 @@ interface TimezoneCardProps {
   isReference?: boolean
   isDragging?: boolean
   dragHandleProps?: DragHandleProps
+  zoneOptions?: TimezoneOption[]
+  onZoneChange?: (zone: string) => void
 }
 
 const STATUS_BORDER: Record<TimezoneDisplay['status'], string> = {
@@ -32,10 +36,14 @@ export function TimezoneCard({
   isReference = false,
   isDragging = false,
   dragHandleProps,
+  zoneOptions,
+  onZoneChange,
 }: TimezoneCardProps) {
+  const isCustom = region.isCustom === true
+
   return (
     <article
-      className={`group relative overflow-hidden rounded-2xl border bg-zinc-900/60 p-5 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-zinc-900/80 hover:shadow-xl ${STATUS_BORDER[display.status]} ${isReference ? 'ring-2 ring-violet-500/50' : ''} ${isDragging ? 'scale-[1.02] shadow-2xl ring-2 ring-violet-400/40' : ''}`}
+      className={`group relative overflow-hidden rounded-2xl border bg-zinc-900/60 p-5 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-zinc-900/80 hover:shadow-xl ${STATUS_BORDER[display.status]} ${isReference ? 'ring-2 ring-violet-500/50' : ''} ${isCustom ? 'border-sky-500/30' : ''} ${isDragging ? 'scale-[1.02] shadow-2xl ring-2 ring-violet-400/40' : ''}`}
     >
       <div className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-violet-500/5 blur-2xl transition-opacity group-hover:opacity-100" />
 
@@ -64,14 +72,27 @@ export function TimezoneCard({
       )}
 
       <header className={`mb-4 flex items-start justify-between gap-2 ${dragHandleProps ? 'pl-8' : ''}`}>
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl" role="img" aria-label={region.label}>
-            {region.flag}
-          </span>
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-100">{region.label}</h3>
-            <p className="font-mono text-xs text-zinc-500">{region.zone}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl" role="img" aria-label={region.label}>
+              {region.flag}
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold text-zinc-100">{region.label}</h3>
+              {!isCustom && <p className="font-mono text-xs text-zinc-500">{region.zone}</p>}
+            </div>
           </div>
+
+          {isCustom && zoneOptions && onZoneChange && (
+            <div className="mt-3">
+              <TimezoneSelect
+                id={`timezone-select-${region.id}`}
+                value={region.zone}
+                options={zoneOptions}
+                onChange={onZoneChange}
+              />
+            </div>
+          )}
         </div>
         <WorkingHoursIndicator status={display.status} compact />
       </header>
@@ -93,6 +114,12 @@ export function TimezoneCard({
       {isReference && (
         <span className="absolute right-3 top-3 rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-300">
           Reference
+        </span>
+      )}
+
+      {isCustom && !isReference && (
+        <span className="absolute right-3 top-3 rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-300">
+          Custom
         </span>
       )}
     </article>
