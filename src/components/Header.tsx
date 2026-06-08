@@ -24,7 +24,7 @@ export function Header({ now }: HeaderProps) {
             </span>
           </div>
           <h1 className="bg-gradient-to-r from-zinc-50 to-zinc-400 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
-            Regional Time Sync
+            Time Sync
           </h1>
           <p className="mt-2 max-w-xl text-sm text-zinc-500">
             Coordinate across Southeast Asia, South Korea, Australia, and New York with live

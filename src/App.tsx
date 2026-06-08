@@ -26,7 +26,7 @@ function App() {
       </main>
 
       <footer className="relative border-t border-zinc-800/80 px-6 py-6 text-center text-xs text-zinc-600">
-        Regional Time Sync · Powered by Luxon · DST handled automatically
+        Time Sync · Powered by Luxon · DST handled automatically
       </footer>
     </div>
   )
