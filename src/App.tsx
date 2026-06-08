@@ -1,6 +1,5 @@
 import { Header } from './components/Header'
-import { MeetingPlanner } from './components/MeetingPlanner'
-import { TimezoneGrid } from './components/TimezoneGrid'
+import { TimelineDashboard } from './components/timeline/TimelineDashboard'
 import { useCurrentTime } from './hooks/useCurrentTime'
 import { useCustomTimezones } from './hooks/useCustomTimezones'
 import { useRegionOrder } from './hooks/useRegionOrder'
@@ -17,19 +16,13 @@ function App() {
 
       <Header now={now} />
 
-      <main className="relative mx-auto max-w-7xl space-y-12 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <TimezoneGrid
+      <main className="relative mx-auto max-w-[1600px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <TimelineDashboard
           now={now}
           order={order}
           customZones={customZones}
           onCustomZoneChange={setCustomZone}
           onOrderChange={setOrder}
-        />
-        <MeetingPlanner
-          now={now}
-          order={order}
-          customZones={customZones}
-          onCustomZoneChange={setCustomZone}
         />
       </main>
 

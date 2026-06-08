@@ -5,7 +5,8 @@ import { REGIONS } from '../constants/timezones'
 const STORAGE_KEY = 'regional-time-sync-card-order'
 
 export const FIXED_REGION_IDS = REGIONS.map((region) => region.id)
-const DEFAULT_ORDER = [...FIXED_REGION_IDS]
+const ALL_ROW_IDS = [...FIXED_REGION_IDS, ...CUSTOM_SLOT_IDS]
+const DEFAULT_ORDER = [...ALL_ROW_IDS]
 
 function loadSavedOrder(): string[] {
   try {
@@ -15,9 +16,9 @@ function loadSavedOrder(): string[] {
     const parsed = JSON.parse(saved) as unknown
     if (!Array.isArray(parsed)) return DEFAULT_ORDER
 
-    const validIds = new Set(FIXED_REGION_IDS)
+    const validIds = new Set(ALL_ROW_IDS)
     const restored = parsed.filter((id): id is string => typeof id === 'string' && validIds.has(id))
-    const missing = FIXED_REGION_IDS.filter((id) => !restored.includes(id))
+    const missing = ALL_ROW_IDS.filter((id) => !restored.includes(id))
 
     return [...restored, ...missing]
   } catch {
@@ -29,12 +30,12 @@ export function useRegionOrder() {
   const [order, setOrderState] = useState<string[]>(loadSavedOrder)
 
   const setOrder = useCallback((nextOrder: string[]) => {
-    const regionalOnly = nextOrder.filter((id) => FIXED_REGION_IDS.includes(id))
-    setOrderState(regionalOnly)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(regionalOnly))
+    const valid = nextOrder.filter((id) => ALL_ROW_IDS.includes(id))
+    setOrderState(valid)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(valid))
   }, [])
 
   return { order, setOrder }
 }
 
-export { CUSTOM_SLOT_IDS }
+export { CUSTOM_SLOT_IDS, ALL_ROW_IDS }
